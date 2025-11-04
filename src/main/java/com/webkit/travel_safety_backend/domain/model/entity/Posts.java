@@ -2,6 +2,9 @@ package com.webkit.travel_safety_backend.domain.model.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.CreationTimestamp;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Data
@@ -13,6 +16,9 @@ public class Posts {
     private String title;
 
     private String content;
+
+    @CreationTimestamp
+    private LocalDateTime createdAt;
 
     @OneToOne
     @JoinColumn(name = "category_id")
