@@ -1,2 +1,2 @@
-# safe-travel-app-frontend
+# safe-travel-app-backend
 사용자 위치 기반의 안전 정보를 지도에 통합, 사용자 맞춤형 여행을 제공하는 안전여행 애플리케이션 개발 프로젝트 백엔드입니다.
