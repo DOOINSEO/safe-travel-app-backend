@@ -9,7 +9,7 @@ public class UserReqDTO {
 
     private String loginId;
 
-    private String pwHash;
+    private String password;
 
     private String name;
 
@@ -17,5 +17,5 @@ public class UserReqDTO {
 
     private String nickname;
 
-    private Boolean alarmEnabled = true;
+    private Boolean alarmEnabled;
 }

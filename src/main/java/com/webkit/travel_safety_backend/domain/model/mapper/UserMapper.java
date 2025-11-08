@@ -6,6 +6,7 @@ import com.webkit.travel_safety_backend.domain.model.entity.Users;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
+import org.mapstruct.NullValuePropertyMappingStrategy;
 
 /* MapStruct
 * 객체 간 매퍼 구현을 자동화해주는 도구.
@@ -15,10 +16,12 @@ import org.mapstruct.MappingTarget;
 * 메서드 반환 타입이 없으면 @MappingTarget이 붙은 타깃의 필드가 수정됨
 * */
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface UserMapper {
 
     //UserReqDTO -> Users
+    @Mapping(source = "password", target = "pwHash")
+    @Mapping(target = "role", constant = "USER")
     Users toUsers(UserReqDTO userReqDTO);
 
     //Users -> UserResDTO

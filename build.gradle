@@ -42,6 +42,14 @@ dependencies {
     implementation 'org.mapstruct:mapstruct:1.6.3'
     // https://mvnrepository.com/artifact/org.mapstruct/mapstruct-processor
     annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
+
+    //jjwt
+    implementation 'io.jsonwebtoken:jjwt-api:0.13.0'
+    // https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt-impl
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.13.0'
+    // https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt-jackson
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.13.0'
+
 }
 
 tasks.named('test') {

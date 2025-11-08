@@ -2,16 +2,14 @@ package com.webkit.travel_safety_backend.domain.controller;
 
 import com.webkit.travel_safety_backend.domain.model.dto.req.UserReqDTO;
 import com.webkit.travel_safety_backend.domain.model.dto.res.UserResDTO;
-import com.webkit.travel_safety_backend.domain.model.entity.Users;
-import com.webkit.travel_safety_backend.domain.repository.UserRepository;
 import com.webkit.travel_safety_backend.domain.service.UserService;
 import com.webkit.travel_safety_backend.global.api.ApiResponse;
 import lombok.RequiredArgsConstructor;
-import org.apache.catalina.User;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/user")
 @RequiredArgsConstructor
