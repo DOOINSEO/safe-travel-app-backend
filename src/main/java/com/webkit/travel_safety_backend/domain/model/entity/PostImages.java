@@ -15,11 +15,12 @@ public class PostImages {
     // 하나의 게시글에 여러개의 이미지
     @ManyToOne
     @JoinColumn(name = "post_id")
-    private Long post_id;
+    private Posts post;
 
     private String imgPath;
 
     // 이미지 순서
+    @Column(name = "img_order")
     private int order;
 
 }

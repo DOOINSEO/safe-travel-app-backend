@@ -38,7 +38,7 @@ public class PostImageServiceImpl implements PostImageService {
             int ord = (i.getOrder() == null) ? autoOrder++ : i.getOrder();
             String path = fileStorageService.saveImage(i.getFile(), post.getId(), ord);
             PostImages img = PostImages.builder()
-                    .post_id(postId)
+                    .post(post)
                     .imgPath(path)
                     .order(ord)
                     .build();

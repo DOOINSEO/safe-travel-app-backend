@@ -39,6 +39,7 @@ public class Posts {
     private Locations location;
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<PostImages> images = new ArrayList<>();
 
 }

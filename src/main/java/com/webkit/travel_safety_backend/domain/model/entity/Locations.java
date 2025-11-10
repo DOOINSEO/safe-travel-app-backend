@@ -19,5 +19,4 @@ public class Locations {
     private String regionCode;
 
     private String region;
-
 }

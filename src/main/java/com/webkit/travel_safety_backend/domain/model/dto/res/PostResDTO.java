@@ -16,7 +16,8 @@ public class PostResDTO {
     private Long categoryId;
     private String categoryName;
     private Long locationId;
-    // private String locationName;
+    private String country;
+    private String region;
     private List<PostImageResDTO> images;
     private Integer likeCount;
     private Boolean isLike;

@@ -17,7 +17,6 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.Objects;
 
 @Service
@@ -57,7 +56,7 @@ public class PostServiceImpl implements PostService {
                 int ord = (i.getOrder() == null) ? autoOrder++ : i.getOrder();
                 String path = fileStorageService.saveImage(i.getFile(), saved.getId(), ord);
                 PostImages img = PostImages.builder()
-                        .post_id(saved.getId())
+                        .post(saved)
                         .imgPath(path)
                         .order(ord)
                         .build();
@@ -114,6 +113,7 @@ public class PostServiceImpl implements PostService {
                     .orElseThrow(() -> new EntityNotFoundException("location")));
         postRepository.save(post);
 
+        // 이미지 파일 삭제 필요
         if (reqDTO.getImages() != null) {
             postImageRepository.deleteByPost_Id(postId);
             if(!reqDTO.getImages().isEmpty()){
@@ -123,7 +123,7 @@ public class PostServiceImpl implements PostService {
                     int ord = (i.getOrder() == null) ? autoOrder++ : i.getOrder();
                     String path = fileStorageService.saveImage(i.getFile(), post.getId(), ord);
                     PostImages img = PostImages.builder()
-                            .post_id(postId)
+                            .post(post)
                             .imgPath(path)
                             .order(ord)
                             .build();
@@ -137,6 +137,8 @@ public class PostServiceImpl implements PostService {
     @Override
     public void delete(Long userId, Long postId) {
         Posts post = postRepository.findById(postId).orElseThrow(() -> new EntityNotFoundException("post"));
+        // 이미지 파일 삭제 필요
+
         if(!Objects.equals(post.getUser().getId(), userId))
             throw new SecurityException("no Auth");
         postRepository.delete(post);
