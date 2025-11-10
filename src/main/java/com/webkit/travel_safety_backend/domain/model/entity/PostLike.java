@@ -1,6 +1,7 @@
 package com.webkit.travel_safety_backend.domain.model.entity;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
 
@@ -8,6 +9,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Data
+@Builder
 public class PostLike {
 
     @Id @GeneratedValue

@@ -20,10 +20,4 @@ public class Locations {
 
     private String region;
 
-    /*
-    * 위도, 경도
-    * private Double latitude;
-    * private Double longitude;
-    * */
-
 }
