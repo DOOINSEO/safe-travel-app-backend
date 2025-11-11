@@ -1,8 +1,7 @@
 package com.webkit.travel_safety_backend.domain.model.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
+
+import jakarta.persistence.*;
 import lombok.Data;
 
 @Entity
@@ -15,7 +14,12 @@ public class PostImages {
     private String imgPath;
 
     // 이미지 순서
-    private Long order;
+    private Long sortOrder;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "post_id")
+    private Posts post;
+
 
 
 }
