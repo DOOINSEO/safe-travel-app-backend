@@ -3,7 +3,6 @@ package com.webkit.travel_safety_backend.domain.model.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.mapping.ToOne;
 
 import java.time.LocalDateTime;
 
@@ -21,7 +20,7 @@ public class Posts {
     @CreationTimestamp
     private LocalDateTime createdAt;
 
-    @ManyToOne
+    @OneToOne
     @JoinColumn(name = "category_id")
     private PostCategory category;
 

@@ -1,45 +1,37 @@
 package com.webkit.travel_safety_backend.domain.controller;
 
 import com.webkit.travel_safety_backend.domain.model.dto.req.UserReqDTO;
-import com.webkit.travel_safety_backend.domain.model.dto.res.UserResDTO;
-import com.webkit.travel_safety_backend.domain.service.UserService;
+import com.webkit.travel_safety_backend.domain.model.entity.Users;
+import com.webkit.travel_safety_backend.domain.repository.UserRepository;
 import com.webkit.travel_safety_backend.global.api.ApiResponse;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-@Slf4j
 @RestController
 @RequestMapping("/api/user")
 @RequiredArgsConstructor
 public class UserController {
 
-    private final UserService userService;
+    private final UserRepository userRepository;
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<UserResDTO>> getUser(@PathVariable Long id) {
-        UserResDTO userResDTO = userService.getUserById(id);
-        return ResponseEntity.ok(ApiResponse.success(userResDTO));
+    public ApiResponse<Users> getUser(@PathVariable Long id) {
+
     }
 
     @PostMapping
-    public ResponseEntity<ApiResponse<UserResDTO>> postUser (@ModelAttribute UserReqDTO userReqDTO) {
-        UserResDTO userResDTO = userService.saveUser(userReqDTO);
-        return ResponseEntity.ok(ApiResponse.success(userResDTO));
+    public ApiResponse<Users> postUser (@ModelAttribute UserReqDTO user) {
+
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<UserResDTO>> putUser (@PathVariable Long id,
-                                            @ModelAttribute UserReqDTO userReqDTO) {
-        UserResDTO userResDTO = userService.updateUser(id, userReqDTO);
-        return ResponseEntity.ok(ApiResponse.success(userResDTO));
+    @PutMapping
+    public ApiResponse<Users> putUser (@ModelAttribute UserReqDTO user) {
+
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<UserResDTO>> deleteUser (@PathVariable Long id) {
-        UserResDTO userResDTO = userService.deleteUser(id);
-        return ResponseEntity.ok(ApiResponse.success(userResDTO));
-    }
+    @DeleteMapping
+    public ApiResponse<Users> deleteUser (@ModelAttribute UserReqDTO user) {
 
+    }
 }
