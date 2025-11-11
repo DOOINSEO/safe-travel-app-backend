@@ -35,9 +35,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
     private final AuthenticationManager authenticationManager;
     private final JwtProvider jwtProvider;
-
-    private final Long accessExpiration;
-    private final Long refreshExpiration;
+    private final JwtService jwtService;
 
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
@@ -58,23 +56,20 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         Long id =  user.getId();
         Role role = user.getRole();
 
-
-        String accessToken = jwtProvider.generateAccessToken(id, role);
-        String refreshToken = jwtProvider.generateRefreshToken();
-
-        // DB 내 Users 테이블에 refreshToken 저장, 좋은 방법은 아님
-        RefreshTokenEntity savedRefreshTokenEntity = jwtProvider.saveRefreshToken(id, refreshToken);
+        jwtService.deleteRefreshToken(id);
+        RefreshTokenEntity refreshTokenEntity = jwtProvider.generateRefreshTokenEntity(id, role);
+        RefreshTokenEntity savedRefreshTokenEntity = jwtService.saveRefreshTokenEntity(refreshTokenEntity);
 
         ResponseCookie cookie = ResponseCookie.from("refresh_token", savedRefreshTokenEntity.getRefreshToken())
                 .httpOnly(true)
-                .secure(true)
-                .sameSite("None") // 크로스도메인 허용 시 필요
+                .secure(false) //HTTPS 환경 여부
+                .sameSite("Lax") // 크로스도메인 허용 시 필요
                 .path("/")
-                .maxAge(refreshExpiration / 1000) // 초 단위
+                .maxAge(jwtProvider.getRefreshExpiration() / 1000) // 초 단위
                 .build();
 
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
-        response.addHeader("Authorization", "Bearer " + accessToken);
+        response.addHeader("Authorization", "Bearer " + savedRefreshTokenEntity.getAccessToken());
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
 

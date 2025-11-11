@@ -1,5 +1,6 @@
 package com.webkit.travel_safety_backend.domain.model.entity;
 
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -15,6 +16,8 @@ public class RefreshTokenEntity {
 
     @Id @GeneratedValue
     private Long id;
+
+    private String accessToken;
 
     private String refreshToken;
 

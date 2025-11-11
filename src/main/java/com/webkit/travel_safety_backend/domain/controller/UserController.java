@@ -41,4 +41,5 @@ public class UserController {
         UserResDTO userResDTO = userService.deleteUser(id);
         return ResponseEntity.ok(ApiResponse.success(userResDTO));
     }
+
 }

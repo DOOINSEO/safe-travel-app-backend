@@ -1,9 +1,9 @@
 package com.webkit.travel_safety_backend.domain.security;
 
+import com.webkit.travel_safety_backend.domain.model.entity.RefreshTokenEntity;
 import com.webkit.travel_safety_backend.domain.model.entity.Users;
-import com.webkit.travel_safety_backend.domain.security.filter.JwtFilter;
-import com.webkit.travel_safety_backend.domain.security.filter.JwtProvider;
-import com.webkit.travel_safety_backend.domain.security.filter.LoginFilter;
+import com.webkit.travel_safety_backend.domain.security.filter.*;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,6 +11,7 @@ import org.apache.catalina.User;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -23,6 +24,13 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 @Configuration
@@ -31,28 +39,30 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final String[] WHITELIST = {"/api/user", "/api/user/login"};
-    private final JwtProvider jwtProvider;
-    private final JwtFilter jwtFilter;
 
-
-    @Value("${spring.jwt.access-expiration}")
-    private Long accessExpiration;
-
-    @Value("${spring.jwt.refresh-expiration}")
-    private Long refreshExpiration;
-
-    @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
-        return authenticationConfiguration.getAuthenticationManager();
+    @Bean JwtFilter jwtFilter(JwtProvider jwtProvider, JwtService jwtService) {
+        return new JwtFilter(jwtProvider, jwtService);
     }
 
+//    @Bean LoginFilter loginFilter(AuthenticationConfiguration configuration, JwtProvider jwtProvider, JwtService jwtService) throws Exception {
+//        LoginFilter loginFilter = new LoginFilter(configuration.getAuthenticationManager(), jwtProvider, jwtService);
+//        loginFilter.setFilterProcessesUrl("/api/user/login");
+//        return loginFilter;
+//    }
+
+
+    // SecurityFilter 자체가 Session 기반으로 설계된 듯.
+    // 내부 구조상 LogoutFilter가 JwtFiler, LoginFilter보다 앞에 있음.
+    // 나중에 Login, Logout Controller를 만드는게 구조상 좋을 듯.
     @Bean
     public SecurityFilterChain securityFilterChain(
             HttpSecurity httpSecurity,
-            AuthenticationManager authenticationManager,
-            JwtFilter jwtFilter
+            AuthenticationConfiguration configuration,
+            JwtFilter jwtFilter,
+            JwtProvider jwtProvider,
+            JwtService jwtService
     ) throws Exception {
-        LoginFilter loginFilter = new LoginFilter(authenticationManager, jwtProvider, accessExpiration, refreshExpiration);
+        LoginFilter loginFilter = new LoginFilter(configuration.getAuthenticationManager(), jwtProvider, jwtService);
         loginFilter.setFilterProcessesUrl("/api/user/login");
 
         httpSecurity
@@ -68,32 +78,9 @@ public class SecurityConfig {
                         .logoutUrl("/api/user/logout")
                         .deleteCookies("refresh_token")
                         .logoutSuccessHandler((request, response, authentication) -> {
-                            try {
-                                String token = jwtProvider.resolverToken(request);
-                                if (token != null) {
-                                    Long userId = jwtProvider.getUserId(token);
-                                    log.info(String.format("User %s has been logged in", userId));
-                                    jwtProvider.deleteRefreshToken(userId);
-                                }
-
-                                ResponseCookie expiredCookie = ResponseCookie.from("refresh_token", "")
-                                        .path("/")
-                                        .maxAge(0)
-                                        .httpOnly(true)
-                                        .secure(true)
-                                        .sameSite("None")
-                                        .build();
-
-                                response.addHeader("Set-Cookie", expiredCookie.toString());
-                                response.setStatus(HttpServletResponse.SC_OK);
-                                response.getWriter().write("{\"message\": \"Logout success\"}");
-                            } catch (Exception e) {
-                                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-                                response.getWriter().write("{\"error\": \"Logout failed\"}");
-                            }
+                            logoutProcessHandler(jwtProvider, jwtService, request, response);
 
                             //TODO 1. 회원 정보 삭제할 경우, logout처리
-                            //TODO 2. DB에 AccessToken 저장 고려, 현재 AccessToken 검증 X, 오직 만료시간 확인만 일어남.
                         })
                 )
                 .sessionManagement(session ->
@@ -103,7 +90,54 @@ public class SecurityConfig {
     }
 
     @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+
+        config.setAllowCredentials(true);
+        config.setAllowedOrigins(List.of("*"));
+        config.setAllowedMethods(List.of("GET",  "POST", "PUT", "DELETE"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setExposedHeaders(List.of("*"));
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
+    }
+
+    @Bean
     public BCryptPasswordEncoder bCryptPasswordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    private void logoutProcessHandler(JwtProvider jwtProvider, JwtService jwtService, HttpServletRequest request, HttpServletResponse response) throws IOException {
+        try {
+            String accessToken = jwtProvider.resolverAccessToken(request);
+            if (accessToken == null) throw new RuntimeException("Invalid access token");
+
+            Long userId = jwtProvider.getUserId(accessToken);
+            RefreshTokenEntity refreshTokenEntity = jwtService.getRefreshTokenEntity(userId);
+            log.info("Refresh Token = {} ", refreshTokenEntity.getRefreshToken());
+            Integer validStatus = jwtProvider.validateAccessToken(accessToken, refreshTokenEntity);
+            if (!Objects.equals(validStatus, ValidStatusCode.VALID_STATE)) {
+                throw new RuntimeException("Invalid access token");
+            }
+
+            jwtService.deleteRefreshToken(userId);
+
+            ResponseCookie expiredCookie = ResponseCookie.from("refresh_token", "")
+                    .path("/")
+                    .maxAge(0)
+                    .httpOnly(true)
+                    .secure(false)
+                    .sameSite("Lax")
+                    .build();
+
+            response.addHeader(HttpHeaders.SET_COOKIE, expiredCookie.toString());
+            response.setStatus(HttpServletResponse.SC_OK);
+            response.getWriter().write("{\"message\": \"Logout success\"}");
+        } catch (Exception e) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            response.getWriter().write("{\"error\": \"Logout failed\"}");
+        }
     }
 }

@@ -5,6 +5,7 @@ import com.webkit.travel_safety_backend.domain.model.dto.res.UserResDTO;
 import com.webkit.travel_safety_backend.domain.model.entity.RefreshTokenEntity;
 import com.webkit.travel_safety_backend.domain.model.entity.Users;
 import com.webkit.travel_safety_backend.domain.model.mapper.UserMapper;
+import com.webkit.travel_safety_backend.domain.repository.RefreshTokenRepository;
 import com.webkit.travel_safety_backend.domain.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final UserMapper userMapper;
 
@@ -55,6 +57,7 @@ public class UserService {
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
         userRepository.delete(user);
+        refreshTokenRepository.deleteByUserId(userId);
 
         return userMapper.toUserResDTO(user);
     }

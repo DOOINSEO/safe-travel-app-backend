@@ -2,20 +2,21 @@ package com.webkit.travel_safety_backend.domain.security.filter;
 
 import com.webkit.travel_safety_backend.domain.model.entity.RefreshTokenEntity;
 import com.webkit.travel_safety_backend.domain.model.entity.Role;
-import com.webkit.travel_safety_backend.domain.repository.RefreshTokenRepository;
 import com.webkit.travel_safety_backend.domain.security.custom.CustomUserDetails;
 import com.webkit.travel_safety_backend.domain.security.custom.CustomUserDetailsService;
 import io.jsonwebtoken.*;
 import jakarta.annotation.PostConstruct;
-import jakarta.persistence.Lob;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.logging.log4j.message.LoggerNameAwareMessage;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.util.WebUtils;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
@@ -23,13 +24,15 @@ import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.UUID;
 
+
+// Token 생성, 추출, 파싱, 검증
 @Slf4j
-@RequiredArgsConstructor
 @Component
+@Getter
+@RequiredArgsConstructor
 public class JwtProvider {
 
     private final CustomUserDetailsService userDetailsService;
-    private final RefreshTokenRepository refreshTokenRepository;
 
     @Value("${spring.jwt.secret}")
     private String secretKeyPlain;
@@ -56,16 +59,15 @@ public class JwtProvider {
 
     //Jwt accessToken 생성
     public String generateAccessToken(Long userId, Role role) {
-        Date now = new Date();
         log.info("expiration ={}", accessExpiration);
 
         return Jwts.builder()
                 .claims()
                 .issuer(issuer)
-                .issuedAt(now)
+                .issuedAt(new Date())
                 .add("id", userId)
                 .add("role", role)
-                .expiration(new Date(now.getTime() + accessExpiration))
+                .expiration(this.generateTokenExpiration(accessExpiration))
                 .and()
                 .signWith(secretKey)
                 .compact();
@@ -78,14 +80,43 @@ public class JwtProvider {
         return UUID.randomUUID().toString();
     }
 
-    /* Spring Security에서 UsernamePasswordAuthenticationFilter는 인증 성공하면
-     successfulAuthentication()을 호출하며 검증에서 사용한 userDetails 객체를 자동으로 SecurityContext에 저장.
-     하지만 직접 상속받아 successfulAuthentication()을 오버라이드한 경우, 직접 수동으로 넣어 줘야 함.
-     근데 이거 필요할까? AuthenticationProvider에서 조회한 UserDatils를 Authentication으로 반환하지 않나?
-     */
+    public Date generateRefreshTokenExpiration() {
+        Date now = new Date();
+        return new Date(now.getTime() + refreshExpiration);
+    }
+
+    public Date generateTokenExpiration(Long expiration) {
+        Date now = new Date();
+        return new Date(now.getTime() + expiration);
+    }
+
+    public RefreshTokenEntity generateRefreshTokenEntity(Long userId, Role role) {
+        String accessToken = this.generateAccessToken(userId, role);
+        String refreshToken = this.generateRefreshToken();
+
+        return this.generateRefreshTokenEntity(accessToken, refreshToken);
+    }
+
+    public RefreshTokenEntity generateRefreshTokenEntity(String accessToken, String refreshToken) {
+        Long userId = this.getUserId(accessToken);
+
+        return new RefreshTokenEntity(
+                null,
+                accessToken,
+                refreshToken,
+                this.generateRefreshTokenExpiration(),
+                userId
+        );
+    }
+
+    // accessToken을 파싱해서 Users 엔티티를 가진 Authentication 객체 생성
+    // UsernamePasswordAuthenticationToken은 Authentication을 상속받음.
     public Authentication getAuthentication(String accessToken) {
         CustomUserDetails userDetails = userDetailsService.loadUserById(this.getUserId(accessToken));
-        return new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+        return new UsernamePasswordAuthenticationToken(
+                userDetails.getUser(),
+                null,
+                userDetails.getAuthorities());
     }
 
     public Long getUserId(String accessToken) {
@@ -100,62 +131,89 @@ public class JwtProvider {
         }
     }
 
+    public Role getRole(String accessToken) {
+        try {
+            String role = Jwts.parser().verifyWith(secretKey).build()
+                    .parseSignedClaims(accessToken)
+                    .getPayload()
+                    .get("role", String.class);
+            return Role.valueOf(role);
+        } catch (io.jsonwebtoken.ExpiredJwtException e) {
+            return  Role.valueOf(e.getClaims().get("role", String.class));
+        }
+    }
+
+    public Date getExpiration(String accessToken) {
+        try {
+            return Jwts.parser().verifyWith(secretKey).build()
+                    .parseSignedClaims(accessToken)
+                    .getPayload()
+                    .getExpiration();
+        } catch (io.jsonwebtoken.ExpiredJwtException e) {
+            return e.getClaims().get("expiration", Date.class);
+        }
+    }
+
     // Request Header에서 AccessToken 추출
-    public String resolverToken(HttpServletRequest request) {
+    public String resolverAccessToken(HttpServletRequest request) {
         String authorizationHeader = request.getHeader("Authorization");
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             return authorizationHeader.substring(7);
         }
         return null;
     }
-
-    public RefreshTokenEntity saveRefreshToken(Long userId, String refreshToken) {
-        Date now = new Date();
-        System.out.println(now);
-        return refreshTokenRepository.save(new RefreshTokenEntity(
-                null,
-                refreshToken,
-                new Date(now.getTime() + refreshExpiration),
-                userId));
+    
+    public String resolverRefreshToken(HttpServletRequest request) {
+        Cookie cookie = WebUtils.getCookie(request, "refresh_token");
+        return cookie != null ? cookie.getValue() : null;
     }
-
-    @Transactional
-    public void deleteRefreshToken(Long userId) {
-            refreshTokenRepository.deleteByUserId(userId);
-    }
-
-
-    public Integer validateAccessToken(String accessToken) {
+    
+    //TODO Validation 로직 분리
+    public Integer validateAccessToken(String accessToken, RefreshTokenEntity refreshTokenEntity) {
         try {
-            Jws<Claims> claims = Jwts.parser().verifyWith(secretKey)
-                    .build()
-                    .parseSignedClaims(accessToken);
+            // 유효 시간 검증
+            Date expiration = this.getExpiration(accessToken);
+            if (expiration == null || expiration.before(new Date())) return ValidStatusCode.EXPIRED_STATE;
 
-            if (claims.getPayload().getExpiration().before(new Date())) {
-                return AuthenticationStatCode.EXPIRED_STATE;
-            }
-            return AuthenticationStatCode.VALID_STATE;
+            Long userId = this.getUserId(accessToken);
+            if (userId == null) return ValidStatusCode.MANIPULATED_STATE;
+
+            // 저장된 토큰과 비교
+            if (!accessToken.equals(refreshTokenEntity.getAccessToken())) return ValidStatusCode.WRONG_STATE;
+
+            return ValidStatusCode.VALID_STATE;
 
         } catch (SecurityException | MalformedJwtException e) {
-            return AuthenticationStatCode.MANIPULATED_STATE;
+            return ValidStatusCode.MANIPULATED_STATE;
         } catch (ExpiredJwtException e) {
-            return  AuthenticationStatCode.EXPIRED_STATE;
+            return  ValidStatusCode.EXPIRED_STATE;
         } catch (UnsupportedJwtException e) {
-            return  AuthenticationStatCode.UNSUPPORTED_STATE;
+            return  ValidStatusCode.UNSUPPORTED_STATE;
         } catch (IllegalArgumentException e) {
-            return  AuthenticationStatCode.WRONG_STATE;
+            return  ValidStatusCode.WRONG_STATE;
         }
     }
 
-    public Integer validateRefreshToken(RefreshTokenEntity refreshTokenEntity, String clientRefreshToken) {
-        if (refreshTokenEntity.getExpiration().before(new Date())) {
-            return AuthenticationStatCode.EXPIRED_STATE;
-        }
-        if (!refreshTokenEntity.getRefreshToken().equals(clientRefreshToken)) {
-            return AuthenticationStatCode.MANIPULATED_STATE;
-        }
 
-        return AuthenticationStatCode.VALID_STATE;
+    public Integer validateRefreshToken(RefreshTokenEntity refreshTokenEntity, String clientRefreshToken) {
+        try {
+            if (refreshTokenEntity.getExpiration().before(new Date())) {
+                return ValidStatusCode.EXPIRED_STATE;
+            }
+            if (!refreshTokenEntity.getRefreshToken().equals(clientRefreshToken)) {
+                return ValidStatusCode.MANIPULATED_STATE;
+            }
+
+            return ValidStatusCode.VALID_STATE;
+        } catch (SecurityException | MalformedJwtException e) {
+            return ValidStatusCode.MANIPULATED_STATE;
+        } catch (ExpiredJwtException e) {
+            return  ValidStatusCode.EXPIRED_STATE;
+        } catch (UnsupportedJwtException e) {
+            return  ValidStatusCode.UNSUPPORTED_STATE;
+        } catch (IllegalArgumentException e) {
+            return  ValidStatusCode.WRONG_STATE;
+        }
     }
 
 }

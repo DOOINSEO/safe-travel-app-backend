@@ -43,7 +43,7 @@ public class CustomUserDetails implements UserDetails {
         authorities.add(new GrantedAuthority() {
             @Override
             public String getAuthority() {
-                return "ROLE_" + user.getRole().name();
+                return user.getRole().name();
             }
         });
 

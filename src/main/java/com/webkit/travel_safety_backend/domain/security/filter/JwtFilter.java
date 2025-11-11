@@ -1,6 +1,7 @@
 package com.webkit.travel_safety_backend.domain.security.filter;
 
 import com.webkit.travel_safety_backend.domain.model.entity.RefreshTokenEntity;
+import com.webkit.travel_safety_backend.domain.model.entity.Role;
 import com.webkit.travel_safety_backend.domain.model.entity.Users;
 import com.webkit.travel_safety_backend.domain.repository.RefreshTokenRepository;
 import com.webkit.travel_safety_backend.domain.repository.UserRepository;
@@ -11,66 +12,66 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.WebUtils;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.Objects;
 
-@Component
 @RequiredArgsConstructor
 public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtProvider jwtProvider;
-    private final RefreshTokenRepository refreshTokenRepository;
-    private final UserRepository userRepository;
+    private final JwtService jwtService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        String accessToken = jwtProvider.resolverToken(request);
+        String accessToken = jwtProvider.resolverAccessToken(request);
 
-        try {
             if (accessToken != null) {
-                Integer status = jwtProvider.validateAccessToken(accessToken);
+                Long userId = jwtProvider.getUserId(accessToken);
+                Role role = jwtProvider.getRole(accessToken);
+                RefreshTokenEntity refreshTokenEntity = jwtService.getRefreshTokenEntity(userId);
+                RefreshTokenEntity newRefreshTokenEntity = null;
 
-                if (Objects.equals(status, AuthenticationStatCode.VALID_STATE)) {
-                    saveAuthentication(accessToken);
-                }
+                // accessToken 검증
+                Integer accessTokenValidStatus = jwtProvider.validateAccessToken(accessToken,  refreshTokenEntity);
 
-                if (Objects.equals(status, AuthenticationStatCode.EXPIRED_STATE)) {
-                    Long userId = jwtProvider.getUserId(accessToken);
-                    RefreshTokenEntity refreshTokenEntity = refreshTokenRepository.getRefreshTokenByUserId(userId)
-                            .orElseThrow(() -> new RuntimeException("Refresh token not found"));
-                    String clientRefreshToken = this.getRefreshTokenFromCookie(request);
+                if (Objects.equals(accessTokenValidStatus, ValidStatusCode.VALID_STATE)) {
+                    //TODO AccessToken 및 RefreshToken 갱신
+                    newRefreshTokenEntity = jwtService.updateRefreshToken(
+                            userId,
+                            jwtProvider.generateAccessToken(userId,  role),
+                            jwtProvider.generateRefreshTokenExpiration()
+                    );
+                    saveAuthentication(newRefreshTokenEntity.getAccessToken());
+
+                    response.addHeader("Authorization", "Bearer " + newRefreshTokenEntity.getAccessToken());
+                } else if (Objects.equals(accessTokenValidStatus, ValidStatusCode.EXPIRED_STATE)) {
+                    String clientRefreshToken = jwtProvider.resolverRefreshToken(request);
 
                     Integer refreshTokenValidStatus = jwtProvider.validateRefreshToken(refreshTokenEntity, clientRefreshToken);
-                    if (!refreshTokenValidStatus.equals(AuthenticationStatCode.VALID_STATE)) {
-                        throw new RuntimeException("Invalid refresh token");
+                    if (!refreshTokenValidStatus.equals(ValidStatusCode.VALID_STATE)) {
+                        jwtService.deleteRefreshToken(userId);
+                        throw new RuntimeException("refresh token is invalid. need to login again");
                     }
 
-                    Users user = userRepository.findById(userId)
-                            .orElseThrow(() -> new RuntimeException("User not found"));
-
-                    // 새 AccessToken 발급
-                    String newAccessToken = jwtProvider.generateAccessToken(userId, user.getRole());
+                    // 새 AccessToken 발급, 일단 refreshToken은 고정
+                    String newAccessToken = jwtProvider.generateAccessToken(userId, role);
+                    jwtService.updateAccessToken(userId, newAccessToken);
                     saveAuthentication(newAccessToken);
 
                     response.addHeader("Authorization", "Bearer " + newAccessToken);
                 }
+                else {
+                    throw new RuntimeException("Invalid access token");
+                }
             }
 
             filterChain.doFilter(request, response);
-
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException(e);
-        }
 
     }
 
@@ -79,8 +80,4 @@ public class JwtFilter extends OncePerRequestFilter {
         SecurityContextHolder.getContext().setAuthentication(authentication);
     }
 
-    private String getRefreshTokenFromCookie(HttpServletRequest request) {
-        Cookie cookie = WebUtils.getCookie(request, "refresh_token");
-        return cookie != null ? cookie.getValue() : null;
-    }
 }

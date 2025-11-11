@@ -1,8 +1,6 @@
 package com.webkit.travel_safety_backend.domain.security.filter;
 
-import org.springframework.stereotype.Component;
-
-public class AuthenticationStatCode {
+public class ValidStatusCode {
     public static final Integer VALID_STATE = 0;
     public static final Integer MANIPULATED_STATE = 1;
     public static final Integer EXPIRED_STATE = 2;
