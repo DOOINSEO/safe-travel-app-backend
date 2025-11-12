@@ -24,7 +24,7 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<ApiResponse<UserResDTO>> postUser (@ModelAttribute UserReqDTO userReqDTO) {
+    public ResponseEntity<ApiResponse<UserResDTO>> postUser (@RequestBody UserReqDTO userReqDTO) {
         UserResDTO userResDTO = userService.saveUser(userReqDTO);
         return ResponseEntity.ok(ApiResponse.success(userResDTO));
     }
