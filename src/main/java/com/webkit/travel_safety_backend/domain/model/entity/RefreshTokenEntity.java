@@ -14,7 +14,7 @@ import java.util.Date;
 @NoArgsConstructor
 public class RefreshTokenEntity {
 
-    @Id @GeneratedValue
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String accessToken;
