@@ -20,6 +20,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import java.io.IOException;
+import java.util.Map;
 
 /* Custom UsernamePasswordAuthenticationFilter
 * 로그인 인증 필터로, 요청으로 들어온 loginId와 password를 통해 token 생성.
@@ -39,13 +40,19 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
+        try{
+            ObjectMapper objectMapper = new ObjectMapper();
+            Map<String, String> loginData = objectMapper.readValue(request.getInputStream(), Map.class);
 
-        String loginId = request.getParameter("loginId");
-        String password = request.getParameter("password");
+            String loginId = loginData.get("loginId");
+            String password = loginData.get("password");
 
-        UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(loginId, password);
+            UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(loginId, password);
 
-        return authenticationManager.authenticate(token);
+            return authenticationManager.authenticate(token);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
