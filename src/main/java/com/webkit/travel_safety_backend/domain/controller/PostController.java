@@ -23,7 +23,6 @@ import java.util.List;
  *
  * */
 
-
 @Slf4j
 @RequestMapping("/api/posts")
 @RestController
@@ -36,7 +35,7 @@ public class PostController {
     }
 
     @PostMapping
-    public ApiResponse<PostResDTO> create(@RequestBody @Valid PostReqDTO dto) {
+    public ApiResponse<PostResDTO> create(@ModelAttribute  @Valid PostReqDTO dto) {
         return ApiResponse.success(postService.create(getUserId(), dto));
     }
 
@@ -57,7 +56,7 @@ public class PostController {
 
 
     @PutMapping("/{postId}")
-    public ApiResponse<PostResDTO> update(@PathVariable Long postId, @RequestBody @Valid PostReqDTO dto) {
+    public ApiResponse<PostResDTO> update(@PathVariable Long postId, @ModelAttribute @Valid PostReqDTO dto) {
         return ApiResponse.success(postService.update(getUserId(), postId, dto));
     }
 

@@ -22,7 +22,11 @@ public class ApiResponse<T> {
     private T data;
 
     // 외부에서 기본 생성자 호출되는 것을 막음
-    private ApiResponse(Boolean isSuccess, String message, T data) {}
+    private ApiResponse(Boolean isSuccess, String message, T data) {
+        this.isSuccess = isSuccess;
+        this.message = message;
+        this.data = data;
+    }
 
     // 정적 메서드
     public static <T> ApiResponse<T> success(T data) {

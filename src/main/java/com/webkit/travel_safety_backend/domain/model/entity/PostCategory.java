@@ -1,20 +1,24 @@
 package com.webkit.travel_safety_backend.domain.model.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Data;
 
 @Entity
 @Data
+@Table(name = "post_category",
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_post_category_code", columnNames = "code"),
+                @UniqueConstraint(name = "uk_post_category_name", columnNames = "name")
+        })
 public class PostCategory {
 
-    @Id @GeneratedValue
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // 한글명
+    @Column(nullable = false, length = 16)
     private String name;
 
-    // 영문명
+    @Column(nullable = false, length = 20)
     private String code;
 }

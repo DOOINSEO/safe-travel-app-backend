@@ -10,7 +10,7 @@ import org.mapstruct.Mapping;
 public interface PostImageMapper {
     @Mapping(source = "id", target = "imageId")
     @Mapping(source = "post.id", target = "postId")
-    @Mapping(source = "imgPath", target = "filePath")
+    @Mapping(source = "imgPath", target = "imgPath")
     @Mapping(source = "order", target = "order")
     PostImageResDTO toRes(PostImages e);
 }

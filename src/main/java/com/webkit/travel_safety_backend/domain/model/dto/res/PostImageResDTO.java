@@ -8,6 +8,6 @@ import lombok.Data;
 public class PostImageResDTO {
     private Long imageId;
     private Long postId;
-    private String filePath;
+    private String imgPath;
     private Integer order;
 }

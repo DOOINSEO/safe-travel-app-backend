@@ -16,7 +16,6 @@ public interface PostMapper {
     @Mapping(source = "location.id", target = "locationId")
     @Mapping(source = "location.country", target = "country")
     @Mapping(source = "location.region", target = "region")
-    @Mapping(source = "images", target = "images")
     @Mapping(source = "createdAt", target = "createdAt")
     PostResDTO toRes(Posts entity);
 }

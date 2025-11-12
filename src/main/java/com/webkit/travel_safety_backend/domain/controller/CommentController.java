@@ -6,6 +6,7 @@ import com.webkit.travel_safety_backend.domain.service.Interface.CommentService;
 import com.webkit.travel_safety_backend.global.api.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,8 +19,9 @@ import java.util.List;
  * 4. Comment 삭제 ( userId, postId )
  * */
 
+@Slf4j
 @RestController
-@RequestMapping("/api/comment")
+@RequestMapping("/api/comments")
 @RequiredArgsConstructor
 public class CommentController {
     private final CommentService commentService;
