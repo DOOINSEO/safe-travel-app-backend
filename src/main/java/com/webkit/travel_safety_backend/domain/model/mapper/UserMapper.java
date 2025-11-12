@@ -19,9 +19,14 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 @Mapper(componentModel = "spring", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface UserMapper {
 
+    default Boolean stringToBoolean(String value) {
+        return "true".equalsIgnoreCase(value);
+    }
+
     //UserReqDTO -> Users
     @Mapping(source = "password", target = "pwHash")
     @Mapping(target = "role", constant = "USER")
+    @Mapping(target = "alarmEnabled", expression = "java(stringToBoolean(userReqDTO.getAlarmEnabled()))")
     Users toUsers(UserReqDTO userReqDTO);
 
     //Users -> UserResDTO

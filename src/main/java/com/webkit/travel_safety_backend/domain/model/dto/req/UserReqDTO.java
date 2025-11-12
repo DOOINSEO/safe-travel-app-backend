@@ -17,5 +17,6 @@ public class UserReqDTO {
 
     private String nickname;
 
-    private Boolean alarmEnabled;
+    private String alarmEnabled;
+
 }
