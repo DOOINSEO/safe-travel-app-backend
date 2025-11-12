@@ -51,6 +51,7 @@ public class JwtProvider {
     // Bean 생성 전 초기화 작업
     @PostConstruct
     public void init() {
+        log.info("JwtProvider secretKeyPlain = {}", secretKeyPlain);
         this.secretKey = new SecretKeySpec(
                 secretKeyPlain.getBytes(StandardCharsets.UTF_8),
                 Jwts.SIG.HS256.key().build().getAlgorithm()
