@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2025-11-12T12:34:02+0900",
+    date = "2025-11-12T15:08:24+0900",
     comments = "version: 1.6.3, compiler: javac, environment: Java 21.0.2 (Oracle Corporation)"
 )
 @Component
@@ -28,9 +28,9 @@ public class UserMapperImpl implements UserMapper {
         users.name( userReqDTO.getName() );
         users.phone( userReqDTO.getPhone() );
         users.nickname( userReqDTO.getNickname() );
+        users.alarmEnabled( userReqDTO.getAlarmEnabled() );
 
         users.role( Role.USER );
-        users.alarmEnabled( stringToBoolean(userReqDTO.getAlarmEnabled()) );
 
         return users.build();
     }
@@ -73,7 +73,7 @@ public class UserMapperImpl implements UserMapper {
             user.setNickname( userReqDTO.getNickname() );
         }
         if ( userReqDTO.getAlarmEnabled() != null ) {
-            user.setAlarmEnabled( stringToBoolean( userReqDTO.getAlarmEnabled() ) );
+            user.setAlarmEnabled( userReqDTO.getAlarmEnabled() );
         }
     }
 }
