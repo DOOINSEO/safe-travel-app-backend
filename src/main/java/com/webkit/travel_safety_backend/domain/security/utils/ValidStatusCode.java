@@ -1,4 +1,4 @@
-package com.webkit.travel_safety_backend.domain.security.filter;
+package com.webkit.travel_safety_backend.domain.security.utils;
 
 public class ValidStatusCode {
     public static final Integer VALID_STATE = 0;

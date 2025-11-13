@@ -1,4 +1,4 @@
-package com.webkit.travel_safety_backend.domain.security.filter;
+package com.webkit.travel_safety_backend.domain.security.utils;
 
 import com.webkit.travel_safety_backend.domain.model.entity.RefreshTokenEntity;
 import com.webkit.travel_safety_backend.domain.model.entity.Role;
@@ -11,7 +11,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.logging.log4j.message.LoggerNameAwareMessage;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -51,7 +50,6 @@ public class JwtProvider {
     // Bean 생성 전 초기화 작업
     @PostConstruct
     public void init() {
-        log.info("JwtProvider secretKeyPlain = {}", secretKeyPlain);
         this.secretKey = new SecretKeySpec(
                 secretKeyPlain.getBytes(StandardCharsets.UTF_8),
                 Jwts.SIG.HS256.key().build().getAlgorithm()
@@ -60,8 +58,6 @@ public class JwtProvider {
 
     //Jwt accessToken 생성
     public String generateAccessToken(Long userId, Role role) {
-        log.info("expiration ={}", accessExpiration);
-
         return Jwts.builder()
                 .claims()
                 .issuer(issuer)
@@ -101,6 +97,7 @@ public class JwtProvider {
     public RefreshTokenEntity generateRefreshTokenEntity(String accessToken, String refreshToken) {
         Long userId = this.getUserId(accessToken);
 
+        log.debug("generateRefreshTokenEntity accessToken={} refreshToken={}", accessToken, refreshToken);
         return new RefreshTokenEntity(
                 null,
                 accessToken,
@@ -158,6 +155,7 @@ public class JwtProvider {
     // Request Header에서 AccessToken 추출
     public String resolverAccessToken(HttpServletRequest request) {
         String authorizationHeader = request.getHeader("Authorization");
+        log.debug("resolverAccessToken authorizationHeader={}", authorizationHeader);
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             return authorizationHeader.substring(7);
         }
@@ -166,6 +164,7 @@ public class JwtProvider {
     
     public String resolverRefreshToken(HttpServletRequest request) {
         Cookie cookie = WebUtils.getCookie(request, "refresh_token");
+        log.debug("resolverRefreshToken cookie={}", cookie);
         return cookie != null ? cookie.getValue() : null;
     }
     
@@ -174,9 +173,11 @@ public class JwtProvider {
         try {
             // 유효 시간 검증
             Date expiration = this.getExpiration(accessToken);
+            log.debug("validateAccessToken expiration={}", expiration);
             if (expiration == null || expiration.before(new Date())) return ValidStatusCode.EXPIRED_STATE;
 
             Long userId = this.getUserId(accessToken);
+            log.debug("validateAccessToken userId={}", userId);
             if (userId == null) return ValidStatusCode.MANIPULATED_STATE;
 
             // 저장된 토큰과 비교

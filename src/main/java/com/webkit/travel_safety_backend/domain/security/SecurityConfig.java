@@ -1,21 +1,21 @@
 package com.webkit.travel_safety_backend.domain.security;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.webkit.travel_safety_backend.domain.model.entity.RefreshTokenEntity;
-import com.webkit.travel_safety_backend.domain.model.entity.Users;
 import com.webkit.travel_safety_backend.domain.security.filter.*;
+import com.webkit.travel_safety_backend.domain.security.utils.JwtProvider;
+import com.webkit.travel_safety_backend.domain.security.utils.JwtService;
+import com.webkit.travel_safety_backend.domain.security.utils.ValidStatusCode;
+import com.webkit.travel_safety_backend.global.api.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.catalina.User;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseCookie;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -136,10 +136,12 @@ public class SecurityConfig {
 
             response.addHeader(HttpHeaders.SET_COOKIE, expiredCookie.toString());
             response.setStatus(HttpServletResponse.SC_OK);
-            response.getWriter().write("{\"message\": \"Logout success\"}");
+            new ObjectMapper().writeValue(response.getOutputStream(), ApiResponse.success("Logout Success"));
         } catch (Exception e) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            response.getWriter().write("{\"error\": \"Logout failed\"}");
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            new ObjectMapper().writeValue(response.getOutputStream(), ApiResponse.fail(e.getMessage()));
         }
     }
 }

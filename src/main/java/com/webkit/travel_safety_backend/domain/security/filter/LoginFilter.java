@@ -5,15 +5,20 @@ import com.webkit.travel_safety_backend.domain.model.entity.RefreshTokenEntity;
 import com.webkit.travel_safety_backend.domain.model.entity.Role;
 import com.webkit.travel_safety_backend.domain.model.entity.Users;
 import com.webkit.travel_safety_backend.domain.security.custom.CustomUserDetails;
+import com.webkit.travel_safety_backend.domain.security.utils.JwtProvider;
+import com.webkit.travel_safety_backend.domain.security.utils.JwtService;
 import com.webkit.travel_safety_backend.global.api.ApiResponse;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.java.Log;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -31,6 +36,7 @@ import java.util.Map;
 * LoginFilter는 Bean으로 관리되지 않으므로, Autowired가 아닌 수동으로 생성자를 호출해야 한다.
 * */
 
+@Slf4j
 @RequiredArgsConstructor
 public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
@@ -47,11 +53,12 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
             String loginId = loginData.get("loginId");
             String password = loginData.get("password");
 
+
             UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(loginId, password);
 
             return authenticationManager.authenticate(token);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new AuthenticationServiceException(e.getMessage());
         }
     }
 
@@ -87,7 +94,17 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     }
 
     @Override
-    protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) throws IOException, ServletException {
-        response.setStatus(401);
+    protected void unsuccessfulAuthentication(HttpServletRequest request,
+                                              HttpServletResponse response,
+                                              AuthenticationException failed) throws IOException, ServletException {
+        log.error("unsuccessfulAuthentication : {}", failed.getMessage());
+
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.writeValue(response.getOutputStream(),
+                ApiResponse.fail(failed.getMessage()));
     }
 }

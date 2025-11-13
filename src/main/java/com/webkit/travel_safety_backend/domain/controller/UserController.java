@@ -19,12 +19,14 @@ public class UserController {
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<UserResDTO>> getUser(@PathVariable Long id) {
+        log.debug("REST request to get User : {}", id);
         UserResDTO userResDTO = userService.getUserById(id);
         return ResponseEntity.ok(ApiResponse.success(userResDTO));
     }
 
     @PostMapping
     public ResponseEntity<ApiResponse<UserResDTO>> postUser (@RequestBody UserReqDTO userReqDTO) {
+        log.debug("REST request to post User : {}", userReqDTO);
         UserResDTO userResDTO = userService.saveUser(userReqDTO);
         return ResponseEntity.ok(ApiResponse.success(userResDTO));
     }
@@ -32,12 +34,14 @@ public class UserController {
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<UserResDTO>> putUser (@PathVariable Long id,
                                             @ModelAttribute UserReqDTO userReqDTO) {
+        log.debug("REST request to put User : {}", userReqDTO);
         UserResDTO userResDTO = userService.updateUser(id, userReqDTO);
         return ResponseEntity.ok(ApiResponse.success(userResDTO));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<UserResDTO>> deleteUser (@PathVariable Long id) {
+        log.debug("REST request to delete User : {}", id);
         UserResDTO userResDTO = userService.deleteUser(id);
         return ResponseEntity.ok(ApiResponse.success(userResDTO));
     }
