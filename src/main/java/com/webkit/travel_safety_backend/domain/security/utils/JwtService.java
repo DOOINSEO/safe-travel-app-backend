@@ -1,4 +1,4 @@
-package com.webkit.travel_safety_backend.domain.security.filter;
+package com.webkit.travel_safety_backend.domain.security.utils;
 
 import com.webkit.travel_safety_backend.domain.model.entity.RefreshTokenEntity;
 import com.webkit.travel_safety_backend.domain.repository.RefreshTokenRepository;
@@ -8,7 +8,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.nio.channels.NonWritableChannelException;
 import java.util.Date;
 
 //Token을 DB에 저장
