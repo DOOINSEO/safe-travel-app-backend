@@ -5,11 +5,11 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 /* ApiResponse
-* <정적 팩토리 메서드>
-* 생성자를 통한 객체 생성이 아닌 메소드 호출을 통한 객체 생성
-* new ApiResponse<>(인자) => X
-* ApiResponse.success(인자) => O, 가독성이 좋음, 의미가 명확함
-* */
+ * <정적 팩토리 메서드>
+ * 생성자를 통한 객체 생성이 아닌 메소드 호출을 통한 객체 생성
+ * new ApiResponse<>(인자) => X
+ * ApiResponse.success(인자) => O, 가독성이 좋음, 의미가 명확함
+ * */
 
 @Getter
 public class ApiResponse<T> {
