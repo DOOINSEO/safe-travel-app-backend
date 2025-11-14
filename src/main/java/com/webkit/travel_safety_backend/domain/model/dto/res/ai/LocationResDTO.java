@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class RegionResDTO {
+public class LocationResDTO {
 
     private Long id;
     private String countryCode;
@@ -19,9 +19,9 @@ public class RegionResDTO {
     private String regionName;
     private Short safetyStage;
 
-    public static RegionResDTO from(Locations locations) {
+    public static LocationResDTO from(Locations locations) {
         if (locations == null) return null;
-        return RegionResDTO.builder()
+        return LocationResDTO.builder()
                 .id(locations.getId())
                 .countryCode(locations.getCountryCode())
                 .countryName(locations.getCountryName())
