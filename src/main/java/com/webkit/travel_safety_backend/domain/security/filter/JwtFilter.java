@@ -44,16 +44,8 @@ public class JwtFilter extends OncePerRequestFilter {
                 log.debug("accessTokenValidStatus: {}", accessTokenValidStatus);
 
                 if (Objects.equals(accessTokenValidStatus, ValidStatusCode.VALID_STATE)) {
-                    //TODO AccessToken 및 RefreshToken 갱신
-                    newRefreshTokenEntity = jwtService.updateRefreshToken(
-                            userId,
-                            jwtProvider.generateAccessToken(userId, role),
-                            jwtProvider.generateRefreshTokenExpiration()
-                    );
-                    log.debug("newRefreshTokenEntity: {}", newRefreshTokenEntity);
-                    saveAuthentication(newRefreshTokenEntity.getAccessToken());
+                    saveAuthentication(accessToken);
 
-                    response.addHeader("Authorization", "Bearer " + newRefreshTokenEntity.getAccessToken());
                 } else if (Objects.equals(accessTokenValidStatus, ValidStatusCode.EXPIRED_STATE)) {
                     String clientRefreshToken = jwtProvider.resolverRefreshToken(request);
                     log.debug("clientRefreshToken: {}", clientRefreshToken);
