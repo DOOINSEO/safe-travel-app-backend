@@ -3,6 +3,7 @@ package com.webkit.travel_safety_backend.domain.controller;
 import com.webkit.travel_safety_backend.domain.model.dto.req.PostReqDTO;
 import com.webkit.travel_safety_backend.domain.model.dto.res.CommentResDTO;
 import com.webkit.travel_safety_backend.domain.model.dto.res.PostResDTO;
+import com.webkit.travel_safety_backend.domain.model.entity.Users;
 import com.webkit.travel_safety_backend.domain.service.Interface.CommentService;
 import com.webkit.travel_safety_backend.domain.service.Interface.PostService;
 import com.webkit.travel_safety_backend.global.api.ApiResponse;
@@ -10,8 +11,10 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.nio.file.FileAlreadyExistsException;
 import java.util.List;
 
 /*
@@ -35,8 +38,8 @@ public class PostController {
     }
 
     @PostMapping
-    public ApiResponse<PostResDTO> create(@ModelAttribute  @Valid PostReqDTO dto) {
-        return ApiResponse.success(postService.create(getUserId(), dto));
+    public ApiResponse<PostResDTO> create(@AuthenticationPrincipal Users user, @ModelAttribute @Valid PostReqDTO dto) {
+        return ApiResponse.success(postService.create(user.getId(), dto));
     }
 
     @GetMapping("/{postId}")
