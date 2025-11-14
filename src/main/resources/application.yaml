@@ -14,7 +14,7 @@ spring:
         format_sql: true
         highlight_sql: true
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
   datasource:
     url: ${SPRING_DATASOURCE_URL}
     username: ${SPRING_DATASOURCE_USERNAME}
