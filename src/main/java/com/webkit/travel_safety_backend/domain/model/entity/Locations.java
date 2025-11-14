@@ -1,30 +1,35 @@
 package com.webkit.travel_safety_backend.domain.model.entity;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.*;
 
 @Entity
-@Data
-@Table(name = "locations",
-        uniqueConstraints = {
-        @UniqueConstraint(name = "uk_country_region_code",
-                columnNames = {"country_code, region_code"})
+@Table(
+        indexes = {
+                @Index(name = "idx_region_code", columnList = "region_code")
         })
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
 public class Locations {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(name = "country_code", length = 8, nullable = false)
     private String countryCode;
 
-    @Column(nullable = false)
-    private String country;
+    @Column(name = "country_name", length = 120, nullable = false)
+    private String countryName;
 
-    @Column(nullable = false)
+    @Column(name = "region_code", length = 8, nullable = false, unique = true)
     private String regionCode;
 
-    @Column(nullable = false)
-    private String region;
+    @Column(name = "region_name", length = 120, nullable = false)
+    private String regionName;
+
+    // `safety-stage` TINYINT UNSIGNED NOT NULL
+    @Column(name = "safety-stage", nullable = false)
+    private Short safetyStage;
 }
