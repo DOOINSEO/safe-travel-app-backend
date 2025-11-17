@@ -11,49 +11,99 @@ import java.time.LocalDateTime;
 @Table(
         name = "risk_evaluate",
         uniqueConstraints = {
-                @UniqueConstraint(name = "uk_scope_region", columnNames = {"scope", "region_code"})
+                @UniqueConstraint(
+                        name = "uk_scope_region",
+                        columnNames = {"scope", "region_code"}
+                )
         }
 )
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Setter
+@NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class RiskEvaluate {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // ENUM('COUNTRY', 'REGION')
+    // ENUM('COUNTRY', 'REGION') DEFAULT 'REGION'
     @Enumerated(EnumType.STRING)
-    @Column(name = "scope", nullable = false, length = 16)
-    private RiskScope scope;
+    @Column(
+            name = "scope",
+            nullable = false,
+            columnDefinition = "ENUM('COUNTRY','REGION') DEFAULT 'REGION'"
+    )
+    @Builder.Default
+    private Scope scope = Scope.REGION;
 
-    // FK (region.region_code)
+    // FK: region(region_code) (또는 locations.region_code 사용 시 DDL 맞춰주기)
+    @Column(name = "region_code", length = 8)
+    private String regionCode;
+
+    // DECIMAL(5,3)
+    @Column(name = "risk_score", precision = 5, scale = 3, nullable = false)
+    private BigDecimal riskScore;
+
+    // ENUM('LOW','MODERATE','HIGH','EXTREME')
+    @Enumerated(EnumType.STRING)
+    @Column(
+            name = "risk_level",
+            nullable = false,
+            columnDefinition = "ENUM('LOW','MODERATE','HIGH','EXTREME')"
+    )
+    private RiskLevel riskLevel;
+
+    // TINYINT UNSIGNED
+    @Column(
+            name = "safety_stage",
+            nullable = false,
+            columnDefinition = "TINYINT UNSIGNED"
+    )
+    private Integer safetyStage;
+
+    // DB에서 DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6)
+    @Column(
+            name = "updated_at",
+            nullable = false,
+            insertable = false,
+            updatable = false,
+            columnDefinition = "DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6)"
+    )
+    private LocalDateTime updatedAt;
+
+    // JSON 문자열로 매핑 (파서/컨버터는 서비스 레이어에서 처리)
+    @Column(name = "details_json", columnDefinition = "JSON")
+    private String detailsJson;
+
+    // =========================
+    // ENUM 정의
+    // =========================
+    public enum Scope {
+        COUNTRY,
+        REGION
+    }
+
+    public enum RiskLevel {
+        LOW,
+        MODERATE,
+        HIGH,
+        EXTREME
+    }
+
+    // =========================
+    // (옵션) Location 연관관계
+    // =========================
+    // FK를 Location 엔티티에 연결하고 싶으면, region_code 기준으로 이렇게도 사용 가능
+    // DDL에서 REFERENCES region(region_code) → 실제 테이블명이 locations면 거기에 맞춰서 수정해야 함.
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
             name = "region_code",
             referencedColumnName = "region_code",
+            insertable = false,
+            updatable = false,
             foreignKey = @ForeignKey(name = "fk_risk_region")
     )
-    private Locations locations;
-
-    @Column(name = "risk_score", nullable = false, precision = 5, scale = 3)
-    private BigDecimal riskScore;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "risk_level", nullable = false, length = 16)
-    private RiskLevel riskLevel;
-
-    @Column(name = "safety_stage", nullable = false)
-    private Short safetyStage;
-
-    // DB에서 DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6)
-    @Column(name = "updated_at", nullable = false,
-            insertable = false, updatable = false,
-            columnDefinition = "TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6)")
-    private LocalDateTime updatedAt;
-
-    // JSON은 일단 String으로 매핑 (필요하면 컨버터 or @Type 사용)
-    @Column(name = "details_json", columnDefinition = "json")
-    private String detailsJson;
+    private Locations region;
 }

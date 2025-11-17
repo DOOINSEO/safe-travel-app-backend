@@ -5,14 +5,18 @@ import lombok.*;
 
 @Entity
 @Table(
+        name = "locations",
         indexes = {
                 @Index(name = "idx_region_code", columnList = "region_code")
-        })
+        }
+)
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Setter
+@NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class Locations {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -29,7 +33,11 @@ public class Locations {
     @Column(name = "region_name", length = 120, nullable = false)
     private String regionName;
 
-    // `safety-stage` TINYINT UNSIGNED NOT NULL
-    @Column(name = "safety_stage", nullable = false)
-    private Short safetyStage;
+    // `safety-stage` 컬럼 매핑 (하이픈 때문에 name 꼭 지정)
+    @Column(
+            name = "safety_stage",
+            nullable = false,
+            columnDefinition = "TINYINT UNSIGNED"
+    )
+    private Integer safetyStage;
 }

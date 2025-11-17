@@ -2,7 +2,6 @@ package com.webkit.travel_safety_backend.domain.model.entity.ai;
 
 import jakarta.persistence.*;
 import lombok.*;
-
 import java.time.LocalDateTime;
 
 @Entity
@@ -15,7 +14,8 @@ import java.time.LocalDateTime;
         }
 )
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Setter
+@NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class NewsItem {
@@ -24,11 +24,11 @@ public class NewsItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // "Phnom Penh" 같은 문자열, 전국 공지는 NULL
+    // "Phnom Penh" / 전국 공지는 NULL
     @Column(name = "region_name", length = 120)
     private String regionName;
 
-    // e.g. "KHM-12"
+    // 예: "KHM-12"
     @Column(name = "region_code", length = 8)
     private String regionCode;
 
@@ -38,25 +38,48 @@ public class NewsItem {
     @Column(name = "title_ko", length = 600)
     private String titleKo;
 
+    // "Kampuchea News", "KR-MOFA" 등
     @Column(name = "source_name", length = 160, nullable = false)
     private String sourceName;
 
-    // TINYINT UNSIGNED
-    @Column(name = "reliability", nullable = false)
-    private Short reliability;
+    // TINYINT UNSIGNED DEFAULT 1
+    @Column(
+            name = "reliability",
+            nullable = false,
+            columnDefinition = "TINYINT UNSIGNED DEFAULT 1"
+    )
+    private Integer reliability;
 
     // ENUM('crime','accident','gov_notice')
     @Enumerated(EnumType.STRING)
-    @Column(name = "event_class", nullable = false, length = 32)
-    private NewsEventClass eventClass;
+    @Column(name = "event_class", nullable = false)
+    private EventClass eventClass;
 
+    // URL 중복 방지
     @Column(name = "url", length = 700, nullable = false, unique = true)
     private String url;
 
-    @Column(name = "published_at")
+    // 기사 발행 시각 (UTC 권장)
+    @Column(name = "published_at", columnDefinition = "DATETIME(6)")
     private LocalDateTime publishedAt;
 
-    @Column(name = "created_at", nullable = false,
-            insertable = false, updatable = false)
+    // DB에서 DEFAULT CURRENT_TIMESTAMP(6)
+    @Column(
+            name = "created_at",
+            nullable = false,
+            insertable = false,
+            updatable = false,
+            columnDefinition = "DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6)"
+    )
     private LocalDateTime createdAt;
+
+    // =========================
+    // ENUM 정의
+    // =========================
+    // DB ENUM 값과 정확히 맞추려고 소문자/스네이크 그대로 사용
+    public enum EventClass {
+        crime,
+        accident,
+        gov_notice
+    }
 }
