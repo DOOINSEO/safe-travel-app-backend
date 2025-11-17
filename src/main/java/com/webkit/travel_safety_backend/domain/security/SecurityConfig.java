@@ -39,7 +39,7 @@ import java.util.Objects;
 public class SecurityConfig {
 
     private final String[] LOGIN_URL = {"/api/user", "/api/user/login"};
-    private final String[] AI_URL = {"/api/news", "/api/risk"};
+    private final String[] AI_URL = {"/api/news/**", "/api/risk/**"};
 
     @Bean JwtFilter jwtFilter(JwtProvider jwtProvider, JwtService jwtService) {
         return new JwtFilter(jwtProvider, jwtService);
