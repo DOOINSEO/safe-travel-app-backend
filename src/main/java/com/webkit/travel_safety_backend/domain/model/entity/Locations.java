@@ -30,6 +30,6 @@ public class Locations {
     private String regionName;
 
     // `safety-stage` TINYINT UNSIGNED NOT NULL
-    @Column(name = "safety-stage", nullable = false)
+    @Column(name = "safety_stage", nullable = false)
     private Short safetyStage;
 }

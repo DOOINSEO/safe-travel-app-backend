@@ -2,11 +2,13 @@ package com.webkit.travel_safety_backend.domain.controller;
 
 import com.webkit.travel_safety_backend.domain.model.dto.req.CommentReqDTO;
 import com.webkit.travel_safety_backend.domain.model.dto.res.CommentResDTO;
+import com.webkit.travel_safety_backend.domain.model.entity.Users;
 import com.webkit.travel_safety_backend.domain.service.Interface.CommentService;
 import com.webkit.travel_safety_backend.global.api.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -26,13 +28,14 @@ import java.util.List;
 public class CommentController {
     private final CommentService commentService;
 
-    private Long getUserId(){
-        return 1L;
-    }
+//    private Long getUserId(){
+//        return 1L;
+//    }
 
     @PostMapping
-    public ApiResponse<CommentResDTO> create(@RequestBody @Valid CommentReqDTO dto){
-        return ApiResponse.success(commentService.create(getUserId(), dto));
+    public ApiResponse<CommentResDTO> create(@AuthenticationPrincipal Users user,
+                                             @RequestBody @Valid CommentReqDTO dto){
+        return ApiResponse.success(commentService.create(user.getId(), dto));
     }
 
     @GetMapping
@@ -41,13 +44,16 @@ public class CommentController {
     }
 
     @PutMapping("/{commentId}")
-    public ApiResponse<CommentResDTO> update(@PathVariable Long commentId, @Valid CommentReqDTO dto){
-        return ApiResponse.success(commentService.update(getUserId(), commentId, dto));
+    public ApiResponse<CommentResDTO> update(@AuthenticationPrincipal Users user,
+                                             @PathVariable Long commentId,
+                                             @Valid CommentReqDTO dto){
+        return ApiResponse.success(commentService.update(user.getId(), commentId, dto));
     }
 
     @DeleteMapping("/{commentId}")
-    public ApiResponse<Void> delete(Long commentId){
-        commentService.delete(getUserId(), commentId);
+    public ApiResponse<Void> delete(@AuthenticationPrincipal Users user,
+                                    @PathVariable Long commentId){
+        commentService.delete(user.getId(), commentId);
         return ApiResponse.success("deleted", null);
     }
 }

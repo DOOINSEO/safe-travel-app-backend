@@ -49,7 +49,8 @@ public class RiskEvaluate {
 
     // DB에서 DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6)
     @Column(name = "updated_at", nullable = false,
-            insertable = false, updatable = false)
+            insertable = false, updatable = false,
+            columnDefinition = "TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6)")
     private LocalDateTime updatedAt;
 
     // JSON은 일단 String으로 매핑 (필요하면 컨버터 or @Type 사용)
