@@ -46,7 +46,7 @@ public class CommentController {
     @PutMapping("/{commentId}")
     public ApiResponse<CommentResDTO> update(@AuthenticationPrincipal Users user,
                                              @PathVariable Long commentId,
-                                             @Valid CommentReqDTO dto){
+                                             @RequestBody @Valid CommentReqDTO dto){
         return ApiResponse.success(commentService.update(user.getId(), commentId, dto));
     }
 
