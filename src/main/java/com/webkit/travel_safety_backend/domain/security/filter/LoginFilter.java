@@ -1,9 +1,11 @@
 package com.webkit.travel_safety_backend.domain.security.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.webkit.travel_safety_backend.domain.model.dto.res.UserResDTO;
 import com.webkit.travel_safety_backend.domain.model.entity.RefreshTokenEntity;
 import com.webkit.travel_safety_backend.domain.model.entity.Role;
 import com.webkit.travel_safety_backend.domain.model.entity.Users;
+import com.webkit.travel_safety_backend.domain.model.mapper.UserMapper;
 import com.webkit.travel_safety_backend.domain.security.custom.CustomUserDetails;
 import com.webkit.travel_safety_backend.domain.security.utils.JwtProvider;
 import com.webkit.travel_safety_backend.domain.security.utils.JwtService;
@@ -41,6 +43,7 @@ import java.util.Map;
 public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
     private final AuthenticationManager authenticationManager;
+    private final UserMapper userMapper;
     private final JwtProvider jwtProvider;
     private final JwtService jwtService;
 
@@ -87,8 +90,9 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
 
+        UserResDTO userResDTO = userMapper.toUserResDTO(user);
         ObjectMapper objectMapper = new ObjectMapper();
-        String res = objectMapper.writeValueAsString(ApiResponse.success("Login Success"));
+        String res = objectMapper.writeValueAsString(ApiResponse.success(userResDTO));
 
         response.getWriter().write(res);
     }
