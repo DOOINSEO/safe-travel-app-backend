@@ -24,6 +24,7 @@ public class UserService {
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final UserMapper userMapper;
 
+    // TODO 리팩토링
     public UserResDTO getUserById(Long id) {
         Users users = userRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
@@ -42,15 +43,10 @@ public class UserService {
 
 
     @Transactional
-    public UserResDTO updateUser(Long userId, UserReqDTO userReqDTO) {
-        log.info("User infomation before update = {}", userReqDTO);
-
-        Users user = userRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("User not found"));
-
+    public UserResDTO updateUser(Users user, UserReqDTO userReqDTO) {
+        log.info("User infomation before update = {}", user);
 
         userMapper.updateUserFromDto(userReqDTO, user);
-
         Users updatedUser = userRepository.save(user);
 
         log.info("updated user = {}", updatedUser);
@@ -58,12 +54,10 @@ public class UserService {
     }
 
     @Transactional
-    public UserResDTO deleteUser(Long userId) {
-        Users user = userRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+    public UserResDTO deleteUser(Users user) {
 
         userRepository.delete(user);
-        refreshTokenRepository.deleteByUserId(userId);
+        refreshTokenRepository.deleteByUserId(user.getId());
 
         log.info("User delete successful");
         return userMapper.toUserResDTO(user);

@@ -30,14 +30,14 @@ public class CustomUserDetailsService implements UserDetailsService {
         
         // Exception 대신 null 처리
         Users user = userRepository.findByLoginId(loginId)
-                .orElse(null);
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with loginId: " + loginId));
 
         return new CustomUserDetails(user);
     }
 
     public CustomUserDetails loadUserById(Long id) throws UsernameNotFoundException {
         Users user = userRepository.findById(id)
-                .orElse(null);
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with id: " + id));
 
         return new CustomUserDetails(user);
     }

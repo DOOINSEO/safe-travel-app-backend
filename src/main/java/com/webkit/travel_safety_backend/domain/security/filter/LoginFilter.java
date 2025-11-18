@@ -48,7 +48,8 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     private final JwtService jwtService;
 
     @Override
-    public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
+    public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response)
+            throws AuthenticationException {
         try{
             ObjectMapper objectMapper = new ObjectMapper();
             Map<String, String> loginData = objectMapper.readValue(request.getInputStream(), Map.class);
@@ -60,7 +61,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
             UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(loginId, password);
 
             return authenticationManager.authenticate(token);
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new AuthenticationServiceException(e.getMessage());
         }
     }
