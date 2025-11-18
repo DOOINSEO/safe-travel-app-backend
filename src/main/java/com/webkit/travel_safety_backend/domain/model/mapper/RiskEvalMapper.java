@@ -13,7 +13,6 @@ public interface RiskEvalMapper {
     @Mapping(source = "riskScore", target = "riskScore")
     @Mapping(source = "riskLevel", target = "riskLevel")
     @Mapping(source = "safetyStage", target = "safetyStage")
-    @Mapping(source = "detailsJson", target = "detail")
     @Mapping(source = "updatedAt", target = "updatedAt")
     RiskEvalResDTO toRes(RiskEvaluate entity);
 }

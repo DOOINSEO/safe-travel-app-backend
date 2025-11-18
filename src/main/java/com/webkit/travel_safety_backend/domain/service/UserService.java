@@ -46,6 +46,7 @@ public class UserService {
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
         userMapper.updateUserFromDto(userReqDTO, user);
+
         Users updatedUser = userRepository.save(user);
 
         return userMapper.toUserResDTO(updatedUser);
