@@ -22,12 +22,12 @@ import java.util.Map;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional
+@Transactional(readOnly = true)
 public class RiskEvalServiceImpl implements RiskEvalService {
+
     private final RiskEvalRepository repo;
     private final RiskEvalMapper mapper;
     private final ObjectMapper objectMapper;
-
 
     @Override
     public RiskEvalResDTO get(String regionCode) {
@@ -156,4 +156,5 @@ public class RiskEvalServiceImpl implements RiskEvalService {
 
         return result;
     }
+
 }

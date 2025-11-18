@@ -15,7 +15,7 @@ public class PostResDTO {
     private String content;
     private Long categoryId;
     private String categoryName;
-    private Long locationId;
+    private String regionCode;
     private String country;
     private String region;
     private List<PostImageResDTO> images;
@@ -23,3 +23,4 @@ public class PostResDTO {
     private Boolean isLike;
     private LocalDateTime createdAt;
 }
+

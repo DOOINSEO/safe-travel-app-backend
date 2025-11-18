@@ -15,7 +15,7 @@ public class PostReqDTO {
     private Long categoryId;
 
     @NotNull
-    private Long locationId;
+    private String regionCode;
 
     private List<PostImageReqDTO> images;
 }

@@ -18,7 +18,7 @@ public interface PostRepository extends JpaRepository<Posts, Long>, JpaSpecifica
             from Posts p
             left join PostLike pl on pl.post = p
             where (:categoryId is null or p.category.id = :categoryId)
-              and (:locationId is null or p.location.id = :locationId)
+              and (:regionCode is null or p.location.regionCode = :regionCode)
               and (:q is null or p.content like concat('%', :q, '%'))
             group by p
             order by count(pl.id) desc, p.id desc
@@ -27,13 +27,13 @@ public interface PostRepository extends JpaRepository<Posts, Long>, JpaSpecifica
             select count(p)
             from Posts p
             where (:categoryId is null or p.category.id = :categoryId)
-              and (:locationId is null or p.location.id = :locationId)
+              and (:regionCode is null or p.location.regionCode = :regionCode)
               and (:q is null or p.content like concat('%', :q, '%'))
         """
     )
     Page<Posts> findAllOrderByLikeCountDesc(
             @Param("categoryId") Long categoryId,
-            @Param("locationId") Long locationId,
+            @Param("regionCode") String regionCode,
             @Param("q") String q,
             Pageable pageable
     );

@@ -33,44 +33,39 @@ import java.util.List;
 public class PostController {
     private final PostService postService;
 
-//    private Long getUserId() {
-//        return 1L;
-//    }
+    private Long getUserId() {
+        return 1L;
+    }
 
     @PostMapping
-    public ApiResponse<PostResDTO> create(@AuthenticationPrincipal Users user, @ModelAttribute @Valid PostReqDTO dto) {
-        return ApiResponse.success(postService.create(user.getId(), dto));
+    public ApiResponse<PostResDTO> create(@ModelAttribute  @Valid PostReqDTO dto) {
+        return ApiResponse.success(postService.create(getUserId(), dto));
     }
 
     @GetMapping("/{postId}")
-    public ApiResponse<PostResDTO> get(@AuthenticationPrincipal Users user, @PathVariable Long postId) {
-        return ApiResponse.success(postService.get(user.getId(), postId));
+    public ApiResponse<PostResDTO> get(@PathVariable Long postId) {
+        return ApiResponse.success(postService.get(getUserId(), postId));
     }
 
     @GetMapping
     public ApiResponse<Page<PostResDTO>> getList(@RequestParam(required = false) Integer page,
                                                  @RequestParam(required = false) Integer size,
                                                  @RequestParam(required = false) String sort,
-                                                 @RequestParam(required = false) Long locationId,
+                                                 @RequestParam(required = false) String regionCode,
                                                  @RequestParam(required = false) Long categoryId,
-                                                 @RequestParam(required = false) String q,
-                                                 @AuthenticationPrincipal Users user){
-        return ApiResponse.success(postService.getList(user.getId(), page, size, sort, locationId, categoryId, q));
+                                                 @RequestParam(required = false) String q){
+        return ApiResponse.success(postService.getList(getUserId(), page, size, sort, regionCode, categoryId, q));
     }
 
 
     @PutMapping("/{postId}")
-    public ApiResponse<PostResDTO> update(@AuthenticationPrincipal Users user,
-                                          @PathVariable Long postId,
-                                          @ModelAttribute @Valid PostReqDTO dto) {
-        return ApiResponse.success(postService.update(user.getId(), postId, dto));
+    public ApiResponse<PostResDTO> update(@PathVariable Long postId, @ModelAttribute @Valid PostReqDTO dto) {
+        return ApiResponse.success(postService.update(getUserId(), postId, dto));
     }
 
     @DeleteMapping("/{postId}")
-    public ApiResponse<Void> delete(
-            @AuthenticationPrincipal Users user,
-            @PathVariable Long postId) {
-        postService.delete(user.getId(), postId);
+    public ApiResponse<Void> delete(@PathVariable Long postId) {
+        postService.delete(getUserId(), postId);
         return ApiResponse.success("deleted", null);
     }
 }

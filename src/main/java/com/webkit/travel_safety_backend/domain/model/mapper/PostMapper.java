@@ -13,7 +13,7 @@ public interface PostMapper {
     @Mapping(source = "user.nickname", target = "userNickname")
     @Mapping(source = "category.id", target = "categoryId")
     @Mapping(source = "category.name", target = "categoryName")
-    @Mapping(source = "location.id", target = "locationId")
+    @Mapping(source = "location.regionCode", target = "regionCode")
     @Mapping(source = "location.countryName", target = "country")
     @Mapping(source = "location.regionName", target = "region")
     @Mapping(source = "createdAt", target = "createdAt")

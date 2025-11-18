@@ -17,7 +17,7 @@ import org.springframework.data.domain.Page;
 public interface PostService {
     public PostResDTO create(Long userId, PostReqDTO reqDTO);
     public PostResDTO get(Long userId, Long postId);
-    Page<PostResDTO> getList(Long userId, Integer page, Integer size, String sort, Long categoryId, Long locationId, String q);
+    Page<PostResDTO> getList(Long userId, Integer page, Integer size, String sort, String regionCode, Long categoryId, String q);
     public PostResDTO update(Long userId, Long postId, PostReqDTO reqDTO);
     public void delete(Long userId, Long postId);
 }

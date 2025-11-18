@@ -16,3 +16,4 @@ public interface RiskEvalMapper {
     @Mapping(source = "updatedAt", target = "updatedAt")
     RiskEvalResDTO toRes(RiskEvaluate entity);
 }
+

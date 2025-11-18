@@ -41,8 +41,7 @@ public class PostServiceImpl implements PostService {
     public PostResDTO create(Long userId, PostReqDTO reqDTO) {
         Users user = userRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("user"));
         PostCategory postCategory = postCategoryRepository.findById(reqDTO.getCategoryId()).orElseThrow(() -> new EntityNotFoundException("category"));
-        Locations location = locationRepository.findById(reqDTO.getLocationId()).orElseThrow(() -> new EntityNotFoundException("location"));
-
+        Locations location = locationRepository.findByRegionCode(reqDTO.getRegionCode()).orElseThrow(() -> new EntityNotFoundException("location"));
         Posts post = Posts.builder()
                 .content(reqDTO.getContent())
                 .user(user)
@@ -73,9 +72,10 @@ public class PostServiceImpl implements PostService {
         Posts post = postRepository.findById(postId).orElseThrow(() -> new EntityNotFoundException("post"));
         return assembleRes(userId, post);
     }
+
     @Override
-    public Page<PostResDTO> getList(Long userId, Integer page, Integer size, String sort,
-                                    Long categoryId, Long locationId, String q) {
+    public Page<PostResDTO> getList(Long userId, Integer page, Integer size, String sort, String regionCode, Long categoryId, String q) {
+
         int p = (page == null ? 0 : page);
         int s = Math.min(size == null ? 10 : size, 20);
         String qTrim = (q == null || q.isBlank()) ? null : q.trim();
@@ -83,7 +83,8 @@ public class PostServiceImpl implements PostService {
         if ("likeCount".equalsIgnoreCase(sort)) {
             Pageable pageable = PageRequest.of(p, s);
             Page<Posts> paged = postRepository.findAllOrderByLikeCountDesc(
-                    categoryId, locationId, qTrim, pageable);
+                    categoryId, regionCode, qTrim, pageable
+            );
 
             List<PostResDTO> content = paged.getContent().stream()
                     .map(post -> assembleRes(userId, post))
@@ -92,14 +93,16 @@ public class PostServiceImpl implements PostService {
             return new PageImpl<>(content, pageable, paged.getTotalElements());
         }
 
-        // 기본: 최신순 (Specification 유지)
         Pageable pageable = PageRequest.of(p, s, Sort.by(Sort.Direction.DESC, "id"));
 
         Specification<Posts> spec = Specification.allOf();
-        if (locationId != null)
-            spec = spec.and((r, qy, cb) -> cb.equal(r.get("location").get("id"), locationId));
+
+        if (regionCode != null)
+            spec = spec.and((r, qy, cb) -> cb.equal(r.get("location").get("regionCode"), regionCode));
+
         if (categoryId != null)
             spec = spec.and((r, qy, cb) -> cb.equal(r.get("category").get("id"), categoryId));
+
         if (qTrim != null) {
             String like = "%" + qTrim + "%";
             spec = spec.and((r, qy, cb) -> cb.like(r.get("content"), like));
@@ -114,7 +117,7 @@ public class PostServiceImpl implements PostService {
         return new PageImpl<>(content, pageable, paged.getTotalElements());
     }
 
-    // 안전 set 유틸
+
     private static <T> void safeSet(List<T> list, int index, T value) {
         if (index < 0) throw new IllegalArgumentException("order must be >= 0");
         while (list.size() <= index) list.add(null);
@@ -130,14 +133,13 @@ public class PostServiceImpl implements PostService {
         if (reqDTO.getCategoryId() != null)
             post.setCategory(postCategoryRepository.findById(reqDTO.getCategoryId())
                     .orElseThrow(() -> new EntityNotFoundException("category")));
-        if (reqDTO.getLocationId() != null)
-            post.setLocation(locationRepository.findById(reqDTO.getLocationId())
+        if (reqDTO.getRegionCode() != null)
+            post.setLocation(locationRepository.findByRegionCode(reqDTO.getRegionCode())
                     .orElseThrow(() -> new EntityNotFoundException("location")));
         postRepository.save(post);
 
         if (reqDTO.getImages() == null) return assembleRes(userId, post);
 
-        // (1) 기존 버퍼/엔티티 수집
         List<FileStorageService.ImgData> oldImageList = fileStorageService.getFileListByPostId(postId);
         List<PostImages> oldEntityList = postImageRepository.findByPost_IdOrderByOrderAsc(postId);
 
@@ -148,12 +150,10 @@ public class PostServiceImpl implements PostService {
             oldEntityByPath.put(pi.getImgPath(), pi);
         }
 
-        // (2) 신규 컨테이너
         List<FileStorageService.ImgData> newImageList = new ArrayList<>();
         List<PostImages> newEntityList = new ArrayList<>();
         Set<Integer> seen = new HashSet<>();
 
-        // (3) for 순회: I/O 없음
         for (PostImageReqDTO image : reqDTO.getImages()) {
             boolean hasPath = image.getImgPath() != null && !image.getImgPath().isBlank();
             boolean hasFile = image.getFile() != null && !image.getFile().isEmpty();
@@ -209,12 +209,10 @@ public class PostServiceImpl implements PostService {
             }
         }
 
-        // (4) 기존 삭제: 로컬 → DB(delete + flush)
         fileStorageService.deleteByPostId(postId);
         postImageRepository.deleteByPost_Id(postId);
-        postImageRepository.flush(); // 유니크 충돌 방지용
+        postImageRepository.flush();
 
-        // (5) 신규 저장: 로컬 → DB
         Map<Integer, String> saved = fileStorageService.saveList(postId, newImageList);
         for (int ord = 0; ord < newEntityList.size(); ord++) {
             PostImages ent = newEntityList.get(ord);
@@ -246,7 +244,6 @@ public class PostServiceImpl implements PostService {
             }
         }
 
-        // 2) 이미지 엔티티 일괄 삭제 + 즉시 반영(유니크 충돌 방지)
         postImageRepository.deleteByPost_Id(postId);
         postImageRepository.flush();
 
