@@ -36,19 +36,24 @@ public class UserService {
 
         Users user = userRepository.save(userMapper.toUsers(userReqDTO));
 
+        log.info("User save successful");
         return userMapper.toUserResDTO(user);
     }
 
 
     @Transactional
     public UserResDTO updateUser(Long userId, UserReqDTO userReqDTO) {
+        log.info("User infomation before update = {}", userReqDTO);
+
         Users user = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
+
 
         userMapper.updateUserFromDto(userReqDTO, user);
 
         Users updatedUser = userRepository.save(user);
 
+        log.info("updated user = {}", updatedUser);
         return userMapper.toUserResDTO(updatedUser);
     }
 
@@ -60,6 +65,7 @@ public class UserService {
         userRepository.delete(user);
         refreshTokenRepository.deleteByUserId(userId);
 
+        log.info("User delete successful");
         return userMapper.toUserResDTO(user);
     }
 
