@@ -48,10 +48,10 @@ public class PostController {
     public ApiResponse<Page<PostResDTO>> getList(@RequestParam(required = false) Integer page,
                                                  @RequestParam(required = false) Integer size,
                                                  @RequestParam(required = false) String sort,
-                                                 @RequestParam(required = false) Long locationId,
+                                                 @RequestParam(required = false) String regionCode,
                                                  @RequestParam(required = false) Long categoryId,
                                                  @RequestParam(required = false) String q){
-        return ApiResponse.success(postService.getList(getUserId(), page, size, sort, locationId, categoryId, q));
+        return ApiResponse.success(postService.getList(getUserId(), page, size, sort, regionCode, categoryId, q));
     }
 
 
