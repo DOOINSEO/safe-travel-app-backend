@@ -20,6 +20,7 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 public interface UserMapper {
 
     //UserReqDTO -> Users
+    @Mapping(target = "id", ignore = true)
     @Mapping(source = "password", target = "pwHash")
     @Mapping(target = "role", constant = "USER")
     Users toUsers(UserReqDTO userReqDTO);
@@ -29,6 +30,8 @@ public interface UserMapper {
 
     // UserReqDTO -> 기존 User 수정
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "role", ignore = true)
+    @Mapping(target = "pwHash", ignore = true)
     void updateUserFromDto(UserReqDTO userReqDTO, @MappingTarget Users user);
 
 

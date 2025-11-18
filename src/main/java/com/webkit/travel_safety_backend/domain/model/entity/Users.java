@@ -22,6 +22,7 @@ public class Users {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(unique = true)
     private String loginId;
 
     private String pwHash;
