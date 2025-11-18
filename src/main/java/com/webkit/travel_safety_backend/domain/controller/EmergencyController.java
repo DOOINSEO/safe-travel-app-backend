@@ -21,7 +21,7 @@ public class EmergencyController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<EmergencyResDTO>> getEmergency(@AuthenticationPrincipal Users user) {
-        EmergencyResDTO emergencyResDTO = emergencyService.getEmergency(user.getId());
+        EmergencyResDTO emergencyResDTO = emergencyService.getEmergency(user);
         return ResponseEntity.ok(ApiResponse.success(emergencyResDTO));
     }
 

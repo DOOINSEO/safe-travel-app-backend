@@ -51,8 +51,9 @@ public class EmergencyService {
         return emergencyMapper.toEmergencyResDTO(emergency);
     }
 
-    public EmergencyResDTO getEmergency(Long userId) {
+    public EmergencyResDTO getEmergency(Users user) {
         try {
+            Long userId = user.getId();
             Emergency emergency = emergencyRepository.findByUserId(userId)
                     .orElseThrow(() -> new EntityNotFoundException("Emergency Not Found"));
 
@@ -60,7 +61,7 @@ public class EmergencyService {
             return emergencyMapper.toEmergencyResDTO(emergency);
         } catch (EntityNotFoundException e) {
             log.info("Emergency Not Found");
-            return new EmergencyResDTO(userId, "", "");
+            return new EmergencyResDTO(user.getId(), user.getNickname(), null, "", "");
         }
     }
 }

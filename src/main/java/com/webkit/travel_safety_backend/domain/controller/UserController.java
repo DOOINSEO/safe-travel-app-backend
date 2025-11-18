@@ -36,7 +36,7 @@ public class UserController {
 
     @PutMapping
     public ResponseEntity<ApiResponse<UserResDTO>> putUser (@AuthenticationPrincipal Users user,
-                                                            @ModelAttribute UserReqDTO userReqDTO) {
+                                                            @RequestBody UserReqDTO userReqDTO) {
         log.info("REST request to put User : {}", userReqDTO);
         UserResDTO userResDTO = userService.updateUser(user, userReqDTO);
         return ResponseEntity.ok(ApiResponse.success(userResDTO));
