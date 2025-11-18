@@ -19,7 +19,7 @@ public class UserController {
 
     private final UserService userService;
 
-    @GetMapping("/{id}")
+    @GetMapping
     public ResponseEntity<ApiResponse<UserResDTO>> getUser(@AuthenticationPrincipal Users user) {
         Long userId =  user.getId();
         log.info("REST request to get User : {}", userId);
