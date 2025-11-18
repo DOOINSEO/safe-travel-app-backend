@@ -2,6 +2,7 @@ package com.webkit.travel_safety_backend.domain.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.webkit.travel_safety_backend.domain.model.entity.RefreshTokenEntity;
+import com.webkit.travel_safety_backend.domain.model.mapper.UserMapper;
 import com.webkit.travel_safety_backend.domain.security.filter.*;
 import com.webkit.travel_safety_backend.domain.security.utils.JwtProvider;
 import com.webkit.travel_safety_backend.domain.security.utils.JwtService;
@@ -61,9 +62,10 @@ public class SecurityConfig {
             AuthenticationConfiguration configuration,
             JwtFilter jwtFilter,
             JwtProvider jwtProvider,
-            JwtService jwtService
+            JwtService jwtService,
+            UserMapper userMapper
     ) throws Exception {
-        LoginFilter loginFilter = new LoginFilter(configuration.getAuthenticationManager(), jwtProvider, jwtService);
+        LoginFilter loginFilter = new LoginFilter(configuration.getAuthenticationManager(),userMapper, jwtProvider, jwtService);
         loginFilter.setFilterProcessesUrl("/api/user/login");
 
         httpSecurity

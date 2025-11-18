@@ -36,6 +36,6 @@ public class Users {
     private Boolean alarmEnabled;
 
     @Enumerated(EnumType.STRING)
-    private Role role =  Role.USER;
+    private Role role;
 
 }
