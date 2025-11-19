@@ -76,6 +76,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, LOGIN_URL).permitAll()
                         .requestMatchers(HttpMethod.GET, AI_URL).permitAll()
+                        .requestMatchers("/uploads/**").permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterAt(loginFilter, UsernamePasswordAuthenticationFilter.class)
@@ -101,7 +102,7 @@ public class SecurityConfig {
         config.setAllowCredentials(true);
 //        config.setAllowedOrigins(List.of("http://localhost:5713"));
         config.setAllowedOriginPatterns(List.of("*"));
-        config.setAllowedMethods(List.of("GET",  "POST", "PUT", "DELETE"));
+        config.setAllowedMethods(List.of("GET",  "POST", "PUT", "DELETE", "OPTIONS", "HEAD"));
         config.setAllowedHeaders(List.of("*"));
         config.setExposedHeaders(List.of("*"));
 

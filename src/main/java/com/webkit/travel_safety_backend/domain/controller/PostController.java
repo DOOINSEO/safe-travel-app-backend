@@ -35,11 +35,13 @@ public class PostController {
 
     @PostMapping
     public ApiResponse<PostResDTO> create(@AuthenticationPrincipal Users user, @ModelAttribute  @Valid PostReqDTO dto) {
+        log.info("REST request to create Post : {}", dto);
         return ApiResponse.success(postService.create(user.getId(), dto));
     }
 
     @GetMapping("/{postId}")
     public ApiResponse<PostResDTO> get(@AuthenticationPrincipal Users user, @PathVariable Long postId) {
+        log.info("REST request to get Post : {}", postId);
         return ApiResponse.success(postService.get(user.getId(), postId));
     }
 
@@ -51,17 +53,20 @@ public class PostController {
                                                  @RequestParam(required = false) Long categoryId,
                                                  @RequestParam(required = false) String q,
                                                  @AuthenticationPrincipal Users user){
+        log.info("REST request to get Posts : {}", page);
         return ApiResponse.success(postService.getList(user.getId(), page, size, sort, regionCode, categoryId, q));
     }
 
 
     @PutMapping("/{postId}")
     public ApiResponse<PostResDTO> update(@AuthenticationPrincipal Users user, @PathVariable Long postId, @ModelAttribute @Valid PostReqDTO dto) {
+        log.info("REST request to update Post : {}", dto);
         return ApiResponse.success(postService.update(user.getId(), postId, dto));
     }
 
     @DeleteMapping("/{postId}")
     public ApiResponse<Void> delete(@AuthenticationPrincipal Users user, @PathVariable Long postId) {
+        log.info("REST request to delete Post : {}", postId);
         postService.delete(user.getId(), postId);
         return ApiResponse.success("deleted", null);
     }

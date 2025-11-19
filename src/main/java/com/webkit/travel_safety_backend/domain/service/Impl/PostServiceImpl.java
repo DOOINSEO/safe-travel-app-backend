@@ -64,12 +64,14 @@ public class PostServiceImpl implements PostService {
                 postImageRepository.save(img);
             }
         }
+        log.info("Post Created : {}", saved);
         return assembleRes(userId, post);
     }
 
     @Override
     public PostResDTO get(Long userId, Long postId) {
         Posts post = postRepository.findById(postId).orElseThrow(() -> new EntityNotFoundException("post"));
+        log.info("Get Post : {}", post);
         return assembleRes(userId, post);
     }
 
@@ -114,6 +116,7 @@ public class PostServiceImpl implements PostService {
                 .map(post -> assembleRes(userId, post))
                 .toList();
 
+        log.info("Get Posts : {}", content);
         return new PageImpl<>(content, pageable, paged.getTotalElements());
     }
 
@@ -127,6 +130,7 @@ public class PostServiceImpl implements PostService {
     @Override
     public PostResDTO update(Long userId, Long postId, PostReqDTO reqDTO) {
         Posts post = postRepository.findById(postId).orElseThrow(() -> new EntityNotFoundException("post"));
+        log.info("Found Post : {}", post);
 
         // 본문/메타 갱신
         if (reqDTO.getContent() != null) post.setContent(reqDTO.getContent());
@@ -223,7 +227,6 @@ public class PostServiceImpl implements PostService {
             ent.setImgPath(finalPath);
             postImageRepository.save(ent);
         }
-
         return assembleRes(userId, post);
     }
 

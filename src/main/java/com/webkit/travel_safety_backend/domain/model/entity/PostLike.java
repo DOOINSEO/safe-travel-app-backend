@@ -1,8 +1,10 @@
 package com.webkit.travel_safety_backend.domain.model.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
@@ -18,6 +20,8 @@ import java.time.LocalDateTime;
                 @UniqueConstraint(name = "uk_post_user", columnNames = {"post_id", "user_id"})
         }
 )
+@NoArgsConstructor
+@AllArgsConstructor
 public class PostLike {
 
     @Id
