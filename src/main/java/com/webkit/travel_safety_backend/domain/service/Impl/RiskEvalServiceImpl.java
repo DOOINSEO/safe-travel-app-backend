@@ -46,7 +46,7 @@ public class RiskEvalServiceImpl implements RiskEvalService {
         Map<String, Long> newsCategoryCounts = new HashMap<>();
 
         BigDecimal gdacsR = null;
-        Map<String, Long> gdacsEpisodeCounts = new HashMap<>();
+        Map<String, Long> gdacsTypeCounts = new HashMap<>();
 
         try {
             JsonNode root = objectMapper.readTree(detail);
@@ -88,9 +88,17 @@ public class RiskEvalServiceImpl implements RiskEvalService {
                 JsonNode events = gdacs.path("events");
                 if (events.isArray()) {
                     for (JsonNode event : events) {
-                        String episodeId = event.path("episodeid").asText(null);
-                        if (episodeId != null) {
-                            gdacsEpisodeCounts.merge(episodeId, 1L, Long::sum);
+                        String type = event.path("type").asText(null);
+                        if (type != null) {
+                            // EQ(지진) TC(태풍) FL(홍수) VO(화산) WF(산불) DR(가뭄) TS(쓰나미)
+                            if (type.equals("EQ")) type = "지진";
+                            if (type.equals("TC")) type = "태풍";
+                            if (type.equals("FL")) type = "홍수";
+                            if (type.equals("VO")) type = "화산";
+                            if (type.equals("WF")) type = "산불";
+                            if (type.equals("DR")) type = "가뭄";
+                            if (type.equals("TS")) type = "쓰나미";
+                            gdacsTypeCounts.merge(type, 1L, Long::sum);
                         }
                     }
                 }
@@ -107,7 +115,7 @@ public class RiskEvalServiceImpl implements RiskEvalService {
         dto.setNewsCategoryCounts(newsCategoryCounts.isEmpty() ? null : newsCategoryCounts);
 
         dto.setGdacsR(gdacsR);
-        dto.setGdacsEpisodeCounts(gdacsEpisodeCounts.isEmpty() ? null : gdacsEpisodeCounts);
+        dto.setGdacsEpisodeCounts(gdacsTypeCounts.isEmpty() ? null : gdacsTypeCounts);
 
         String context = buildResultContext(dto);
         dto.setResultContext(context);
@@ -142,8 +150,8 @@ public class RiskEvalServiceImpl implements RiskEvalService {
 
         if (dto.getGdacsEpisodeCounts() != null && !dto.getGdacsEpisodeCounts().isEmpty()) {
             sb.append("GDACS 에피소드별 건수: ");
-            dto.getGdacsEpisodeCounts().forEach((episode, count) ->
-                    sb.append(episode).append(" ").append(count).append("건, ")
+            dto.getGdacsEpisodeCounts().forEach((type, count) ->
+                    sb.append(type).append(" ").append(count).append("건, ")
             );
         } else {
             sb.append("GDACS 이벤트 없음, ");
