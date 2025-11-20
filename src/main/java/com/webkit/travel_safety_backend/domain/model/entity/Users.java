@@ -34,7 +34,7 @@ public class Users {
     private String nickname;
 
     private Boolean alarmEnabled;
-
+    
     @Enumerated(EnumType.STRING)
     private Role role;
 

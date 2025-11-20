@@ -41,7 +41,14 @@ public class Posts {
     private PostCategory category;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(
+            name = "user_id",
+            nullable = true,
+            foreignKey = @ForeignKey(
+                    name = "fk_posts_user",
+                    foreignKeyDefinition = "FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL"
+            )
+    )
     @OnDelete(action = OnDeleteAction.NO_ACTION)
     private Users user;
 

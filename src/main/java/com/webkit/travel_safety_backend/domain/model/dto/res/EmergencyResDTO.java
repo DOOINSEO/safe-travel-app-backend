@@ -13,7 +13,7 @@ import java.util.ArrayList;
 public class EmergencyResDTO {
     private Long userId;
 
-    private String nickname;
+    private String name;
 
     private Long emergencyId;
 
