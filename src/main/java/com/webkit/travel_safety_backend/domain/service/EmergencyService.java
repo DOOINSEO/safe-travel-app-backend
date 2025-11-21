@@ -61,7 +61,7 @@ public class EmergencyService {
             return emergencyMapper.toEmergencyResDTO(emergency);
         } catch (EntityNotFoundException e) {
             log.info("Emergency Not Found");
-            return new EmergencyResDTO(user.getId(), user.getNickname(), null, "", "");
+            return new EmergencyResDTO(user.getId(), user.getName(), null, "", "");
         }
     }
 }
