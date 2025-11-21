@@ -19,7 +19,7 @@ public interface EmergencyMapper {
     Emergency toEmergency(Users user, EmergencyReqDTO emergencyReqDTO);
 
     @Mapping(target = "userId", source = "user.id")
-    @Mapping(target = "user.nickname", source = "user.name")
+    @Mapping(target = "name", source = "user.name")
     @Mapping(target = "emergencyId", source = "id")
     EmergencyResDTO toEmergencyResDTO(Emergency emergency);
 
